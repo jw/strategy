@@ -1,0 +1,3 @@
+Strategy
+
+A strategy game.

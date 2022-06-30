@@ -1,0 +1,75 @@
+[tool.poetry]
+name = "strategy"
+version = "0.1.0"
+description = "Strategy game."
+authors = ["Jan Willems <jw@elevenbits.com>"]
+# Use identifier from https://spdx.org/licenses/
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/jw/strategy"
+repository = "https://github.com/jw/strategy"
+documentation = "https://github.com/jw/strategy/blob/master/README.md"
+classifiers = [
+    # https://pypi.org/classifiers/
+    "Development Status :: 1 - Planning",
+]
+
+[tool.poetry.urls]
+# If you publish you package on PyPI, these will appear in the Project Links section.
+"Bug Tracker" = "https://github.com/jw/strategy/issues"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pygame = "^2.1.2"
+typer = "^0.4.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.2"
+pytest-cov = "^3.0.0"
+pytest-xdist = "^2.5.0"
+black = "^22.3.0"
+pylint = "^2.6.0"
+bandit = "^1.7.4"
+vulture = "^2.4"
+pre-commit = "^2.19.0"
+taskipy = "^1.10.2"
+
+#[tool.pytest.ini_options]
+## Example
+#filterwarnings = [
+#    "ignore::DeprecationWarning:moto.*:",
+#    "ignore::DeprecationWarning:boto.*:",
+ipython = "^8.4.0"
+#]
+
+[tool.taskipy.tasks]
+test = "pytest --cov=strategy --cov-report html --cov-report xml"
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+line_length = 120
+
+[tool.black]
+line-length = 120
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
