@@ -17,6 +17,7 @@ htmlcov
 
 .coverage
 .coveragerc
+coverage.xml
 
 .python-version
 
