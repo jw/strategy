@@ -17,8 +17,8 @@ def test_board():
 
 def test_board_str():
     board = Board()
-    assert "[4|2: <lake>]" in str(board)
-    assert "[6|6: <empty>]" in str(board)
+    assert "lake" in str(board)
+    assert "empty" in str(board)
 
 
 def test_board_top_bottom():

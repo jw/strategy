@@ -1,5 +1,6 @@
 """The Strategy game."""
 import logging
+from dataclasses import dataclass
 
 from pydantic import BaseModel, root_validator
 
@@ -7,27 +8,23 @@ from strategy.player import Player
 
 log = logging.getLogger(__name__)
 
-
-class _Empty:
-    """The Empty cell."""
-
-    def __repr__(self) -> str:
-        """Return `<empty>`."""
-        return "<empty>"
+EMPTY = "empty"
+LAKE = "lake"
 
 
-Empty = _Empty()
+@dataclass
+class Cell:
+    """The empty or lake cell in the `Board`."""
+
+    name: str
+
+    def __str__(self) -> str:
+        """Show the Cell."""
+        return self.name
 
 
-class _Lake:
-    """The Lake cell."""
-
-    def __repr__(self) -> str:
-        """Return `<lake>`."""
-        return "<lake>"
-
-
-Lake = _Lake()
+Empty = Cell(EMPTY)
+Lake = Cell(LAKE)
 
 
 class Action(BaseModel):

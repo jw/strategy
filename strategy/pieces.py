@@ -2,6 +2,7 @@
 from functools import total_ordering
 
 from strategy.exceptions import InvalidOperationError
+from strategy.player import Player
 
 BOMB = "bomb"
 MARSHAL = "marshal"
@@ -21,10 +22,15 @@ FLAG = "flag"
 class Piece:
     """The Strategy piece."""
 
-    def __init__(self, name: str, power: int) -> None:
+    def __init__(
+        self, name: str, power: int, player: Player = Player.UNKNOWN, x: int | None = None, y: int | None = None
+    ) -> None:
         """Create a type by name and power."""
         self.name = name
         self.power = power
+        self.player = player
+        self.x = x
+        self.y = y
 
     def __str__(self) -> str:
         """Show the piece."""
