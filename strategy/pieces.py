@@ -34,7 +34,7 @@ class Piece:
 
     def __str__(self) -> str:
         """Show the piece."""
-        return f"{self.name} ({self.power})"
+        return f"{self.player.name.lower()} {self.name} ({self.power})"
 
     def attack(self, other: "Piece") -> bool | None:
         """
