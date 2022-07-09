@@ -18,9 +18,13 @@ class Board:
 
     The top left is x=0 and y=0, the bottom right is x=9, y=9.
     The left lake is (2, 4), (3, 4), (2, 5) and (3, 5).
-    The right lake is (6, 4), (6, 4), (6, 5) and (7, 5).
+    The right lake is (6, 4), (7, 4), (6, 5) and (7, 5).
     The top half is for the blue player, the bottom half for the red player.
     """
+
+    LEFT_LAKE = [(2, 4), (3, 4), (2, 5), (3, 5)]
+    RIGHT_LAKE = [(6, 4), (7, 4), (6, 5), (7, 5)]
+    LAKES = LEFT_LAKE + RIGHT_LAKE
 
     def __init__(self) -> None:
         """Create an empty board."""
@@ -112,14 +116,8 @@ class Board:
 
     def _add_lakes(self) -> None:
         """Add the lakes to the board."""
-        self._board[2, 4] = Lake
-        self._board[3, 4] = Lake
-        self._board[2, 5] = Lake
-        self._board[3, 5] = Lake
-        self._board[6, 4] = Lake
-        self._board[7, 4] = Lake
-        self._board[6, 5] = Lake
-        self._board[7, 5] = Lake
+        for lake in self.LAKES:
+            self._board[lake] = Lake
 
     def _by_color(self, player: Player) -> list[Piece]:
         """Return all the pieces of the given player."""
