@@ -13,8 +13,8 @@ LAKE = "lake"
 
 
 @dataclass
-class Cell:
-    """The empty or lake cell in the `Board`."""
+class Field:
+    """The base class of an empty or lake field in the `Board`."""
 
     name: str
 
@@ -23,8 +23,8 @@ class Cell:
         return self.name
 
 
-Empty = Cell(EMPTY)
-Lake = Cell(LAKE)
+Empty = Field(EMPTY)
+Lake = Field(LAKE)
 
 
 class Action(BaseModel):

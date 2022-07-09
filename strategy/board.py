@@ -4,7 +4,7 @@ from random import randrange
 from typing import Any
 
 from strategy.exceptions import InvalidDimensionsError
-from strategy.game import LAKE, Cell, Empty, Lake, log
+from strategy.game import LAKE, Empty, Field, Lake, log
 from strategy.pieces import PIECES, Piece
 from strategy.player import Player
 
@@ -67,11 +67,11 @@ class Board:
             setup_list[index] = piece
         return setup_list
 
-    def bottom(self) -> list[Piece | Cell]:
+    def bottom(self) -> list[Piece | Field]:
         """Return the empty cells or pieces in bottom four lines of the board as a `list`."""
         return [self[x, y] for x in range(0, 10) for y in range(6, 10)]
 
-    def top(self) -> list[Piece | Cell]:
+    def top(self) -> list[Piece | Field]:
         """Return the empty cells or pieces in top four lines of the board as a `list`."""
         return [self[x, y] for x in range(0, 10) for y in range(0, 4)]
 
@@ -122,9 +122,9 @@ class Board:
     def _by_color(self, player: Player) -> list[Piece]:
         """Return all the pieces of the given player."""
         pieces = []
-        for value in self._board.values():
-            if not isinstance(value, Cell) and value.player == player:
-                pieces.append(value)
+        for piece in self._board.values():
+            if not isinstance(piece, Field) and piece.player == player:
+                pieces.append(piece)
         return pieces
 
     def _first_line(self) -> str:
@@ -140,10 +140,10 @@ class Board:
         result += "\n"
         return result
 
-    def _format(self, cell: Piece | Cell, x: int, y: int, length: int = SIZE) -> str:
+    def _format(self, cell: Piece | Field, x: int, y: int, length: int = SIZE) -> str:
         """Return a formatted cell."""
         if isinstance(cell, Piece):
             color = "red" if cell.player == Player.RED else "blue"
-        if isinstance(cell, Cell):
+        if isinstance(cell, Field):
             color = "green" if cell.name == LAKE else "bright_black"
         return f"[{color}]{cell.name:^{length}}[/{color}] | "
