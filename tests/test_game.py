@@ -2,10 +2,10 @@ import pytest
 from _pytest.fixtures import fixture
 
 from strategy.board import Board
-from strategy.exceptions import InvalidDimensionsError
-from strategy.main import Range, get_available_range
-from strategy.pieces import BOMB, FLAG, MINER, SCOUT, SPY, Piece
-from strategy.player import Player
+from strategy.colour import Colour
+from strategy.exceptions import InvalidDimensionsError, NoPieceError
+from strategy.main import EmptyRangePiece, RangePiece, available_range
+from strategy.pieces import BOMB, CAPTAIN, FLAG, MINER, SCOUT, SPY, Piece
 
 
 @fixture
@@ -13,83 +13,265 @@ def board():
     return Board()
 
 
-def test_board_get_available_range_open_block(board):
-    board[5, 2] = Piece(SPY, 1, Player.RED)
-    assert get_available_range(board, x=5, y=2) == Range(1, 1, 1, 1)
+def test_board_available_range_no_piece(board):
+    with pytest.raises(NoPieceError):
+        available_range(board, x=7, y=2)
 
 
-def test_board_get_available_range_west_block(board):
-    board[0, 6] = Piece(SPY, 1, Player.RED)
-    assert get_available_range(board, x=0, y=6) == Range(1, 1, 1, 0)
+def test_board_available_range_flag_and_bomb(board):
+    board[7, 2] = Piece(FLAG, 0, Colour.RED)
+    assert available_range(board, x=7, y=2) == EmptyRangePiece
+    board[7, 2] = Piece(BOMB, 11, Colour.RED)
+    assert available_range(board, x=7, y=2) == EmptyRangePiece
 
 
-def test_board_get_available_range_east_block(board):
-    board[9, 6] = Piece(SPY, 1, Player.RED)
-    assert get_available_range(board, x=9, y=6) == Range(1, 0, 1, 1)
+def test_board_available_range_all_empty(board):
+    data = {
+        "north": (1, None),
+        "east": (1, None),
+        "south": (1, None),
+        "west": (1, None),
+    }
+    required = RangePiece(**data)
+    board[7, 2] = Piece(CAPTAIN, 0, Colour.RED)
+    assert available_range(board, x=7, y=2) == required
 
 
-def test_board_get_available_range_south_block(board):
-    board[4, 9] = Piece(SPY, 1, Player.RED)
-    assert get_available_range(board, x=4, y=9) == Range(1, 1, 0, 1)
+def test_board_available_range_empty_lake_north(board):
+    data = {
+        "north": (0, None),
+        "east": (1, None),
+        "south": (1, None),
+        "west": (1, None),
+    }
+    required = RangePiece(**data)
+    board[3, 6] = Piece(CAPTAIN, 0, Colour.RED)
+    assert available_range(board, x=3, y=6) == required
 
 
-def test_board_get_available_range_north_block(board):
-    board[4, 0] = Piece(SPY, 1, Player.RED)
-    assert get_available_range(board, x=4, y=0) == Range(0, 1, 1, 1)
-    board[3, 6] = Piece(MINER, 1, Player.RED)
-    assert get_available_range(board, x=3, y=6) == Range(0, 1, 1, 1)
+def test_board_available_range_empty_left_bottom_corner(board):
+    data = {
+        "north": (1, None),
+        "east": (1, None),
+        "south": (0, None),
+        "west": (0, None),
+    }
+    required = RangePiece(**data)
+    board[0, 9] = Piece(CAPTAIN, 0, Colour.RED)
+    assert available_range(board, x=0, y=9) == required
 
 
-def test_board_get_available_range_north_south_block(board):
-    board[3, 6] = Piece(SPY, 1, Player.RED)
-    board[3, 7] = Piece(MINER, 1, Player.RED)
-    assert get_available_range(board, x=3, y=6) == Range(0, 1, 0, 1)
+def test_board_available_range_corners_with_opposition(board):
+    # left bottom
+    data = {
+        "north": (1, Piece(MINER, 3, Colour.BLUE, x=0, y=8)),
+        "east": (1, Piece(MINER, 3, Colour.BLUE, x=1, y=9)),
+        "south": (0, None),
+        "west": (0, None),
+    }
+    required = RangePiece(**data)
+    board[0, 8] = Piece(MINER, 3, Colour.BLUE, x=0, y=8)
+    board[1, 9] = Piece(MINER, 3, Colour.BLUE, x=1, y=9)
+    board[0, 9] = Piece(CAPTAIN, 0, Colour.RED)
+    assert available_range(board, x=0, y=9) == required
+
+    # right bottom
+    data = {
+        "north": (1, Piece(MINER, 3, Colour.BLUE, x=9, y=8)),
+        "east": (0, None),
+        "south": (0, None),
+        "west": (1, Piece(MINER, 3, Colour.BLUE, x=8, y=9)),
+    }
+    required = RangePiece(**data)
+    board[9, 8] = Piece(MINER, 3, Colour.BLUE, x=9, y=8)
+    board[8, 9] = Piece(MINER, 3, Colour.BLUE, x=8, y=9)
+    board[9, 9] = Piece(CAPTAIN, 0, Colour.RED)
+    assert available_range(board, x=9, y=9) == required
+
+    # left top
+    data = {
+        "north": (0, None),
+        "east": (1, Piece(MINER, 3, Colour.BLUE, x=1, y=0)),
+        "south": (1, Piece(MINER, 3, Colour.BLUE, x=0, y=1)),
+        "west": (0, None),
+    }
+    required = RangePiece(**data)
+    board[1, 0] = Piece(MINER, 3, Colour.BLUE, x=1, y=0)
+    board[0, 1] = Piece(MINER, 3, Colour.BLUE, x=0, y=1)
+    board[0, 0] = Piece(CAPTAIN, 0, Colour.RED)
+    assert available_range(board, x=0, y=0) == required
+
+    # right top
+    data = {
+        "north": (0, None),
+        "east": (0, None),
+        "south": (1, Piece(MINER, 3, Colour.BLUE, x=9, y=1)),
+        "west": (1, Piece(MINER, 3, Colour.BLUE, x=8, y=0)),
+    }
+    required = RangePiece(**data)
+    board[8, 0] = Piece(MINER, 3, Colour.BLUE, x=8, y=0)
+    board[9, 1] = Piece(MINER, 3, Colour.BLUE, x=9, y=1)
+    board[9, 0] = Piece(CAPTAIN, 0, Colour.RED)
+    assert available_range(board, x=9, y=0) == required
 
 
-def test_board_get_available_range_east_west_block(board):
-    board[1, 4] = Piece(SPY, 1, Player.RED)
-    board[0, 4] = Piece(MINER, 1, Player.RED)
-    assert get_available_range(board, x=1, y=4) == Range(1, 0, 1, 0)
+def test_board_available_range_empty_left_bottom_corner_north_east_same_team(board):
+    # left bottom
+    data = {
+        "north": (0, None),
+        "east": (0, None),
+        "south": (0, None),
+        "west": (0, None),
+    }
+    required = RangePiece(**data)
+    board[0, 8] = Piece(MINER, 3, Colour.RED, x=0, y=8)
+    board[1, 9] = Piece(MINER, 3, Colour.RED, x=1, y=9)
+    board[0, 9] = Piece(CAPTAIN, 0, Colour.RED)
+    assert available_range(board, x=0, y=9) == required
+
+    # right bottom
+    data = {
+        "north": (0, None),
+        "east": (0, None),
+        "south": (0, None),
+        "west": (0, None),
+    }
+    required = RangePiece(**data)
+    board[9, 8] = Piece(MINER, 3, Colour.RED, x=9, y=8)
+    board[8, 9] = Piece(MINER, 3, Colour.RED, x=8, y=9)
+    board[9, 9] = Piece(CAPTAIN, 0, Colour.RED)
+    assert available_range(board, x=9, y=9) == required
+
+    # left top
+    data = {
+        "north": (0, None),
+        "east": (0, None),
+        "south": (0, None),
+        "west": (0, None),
+    }
+    required = RangePiece(**data)
+    board[1, 0] = Piece(MINER, 3, Colour.RED, x=1, y=0)
+    board[0, 1] = Piece(MINER, 3, Colour.RED, x=0, y=1)
+    board[0, 0] = Piece(CAPTAIN, 0, Colour.RED)
+    assert available_range(board, x=0, y=0) == required
+
+    # right top
+    data = {
+        "north": (0, None),
+        "east": (0, None),
+        "south": (0, None),
+        "west": (0, None),
+    }
+    required = RangePiece(**data)
+    board[8, 0] = Piece(MINER, 3, Colour.RED, x=8, y=0)
+    board[9, 1] = Piece(MINER, 3, Colour.RED, x=9, y=1)
+    board[9, 0] = Piece(CAPTAIN, 0, Colour.RED)
+    assert available_range(board, x=9, y=0) == required
 
 
-def test_board_get_available_range_complete_block(board):
-    board[1, 4] = Piece(SPY, 1, Player.RED)
-    board[0, 4] = Piece(MINER, 1, Player.RED)  # west
-    board[1, 3] = Piece(MINER, 1, Player.RED)  # north
-    board[1, 5] = Piece(MINER, 1, Player.RED)  # south
-    assert get_available_range(board, x=1, y=4) == Range(0, 0, 0, 0)
+def test_board_available_range_complete_block(board):
+    data = {
+        "north": (0, None),
+        "east": (0, None),
+        "south": (0, None),
+        "west": (0, None),
+    }
+    required = RangePiece(**data)
+    board[1, 4] = Piece(SPY, 1, Colour.RED, x=1, y=4)
+    board[0, 4] = Piece(MINER, 1, Colour.RED, x=0, y=4)
+    board[1, 3] = Piece(MINER, 1, Colour.RED, x=1, y=3)
+    board[1, 5] = Piece(MINER, 1, Colour.RED, x=1, y=5)
+    assert available_range(board, x=1, y=4) == required
 
 
-def test_board_get_available_range_complete_corners(board):
-    board[9, 9] = Piece(SPY, 1, Player.RED)
-    assert get_available_range(board, x=9, y=9) == Range(1, 0, 0, 1)
-    board[0, 0] = Piece(SPY, 1, Player.RED)
-    assert get_available_range(board, x=0, y=0) == Range(0, 1, 1, 0)
-    board[9, 0] = Piece(SPY, 1, Player.RED)
-    assert get_available_range(board, x=9, y=0) == Range(0, 0, 1, 1)
-    board[0, 9] = Piece(SPY, 1, Player.RED)
-    assert get_available_range(board, x=0, y=9) == Range(1, 1, 0, 0)
-
-
-def test_board_get_available_range_bomb_flag(board):
-    board[3, 8] = Piece(BOMB, 11, Player.RED)
-    assert get_available_range(board, x=3, y=8) == Range(0, 0, 0, 0)
-    board[9, 9] = Piece(FLAG, 1, Player.RED)
-    assert get_available_range(board, x=9, y=9) == Range(0, 0, 0, 0)
-
-
-def test_board_get_available_range_raises(board):
+def test_board_available_range_raises(board):
     with pytest.raises(InvalidDimensionsError):
-        get_available_range(board, x=-3, y=8)
+        available_range(board, x=-3, y=8)
 
 
-def test_board_get_available_range_scout(board):
-    board[4, 4] = Piece(SCOUT, 2, Player.RED)
-    assert get_available_range(board, x=4, y=4) == Range(4, 1, 5, 0)
-    board[4, 9] = Piece(SCOUT, 2, Player.RED)
-    assert get_available_range(board, x=4, y=4) == Range(4, 1, 4, 0)
-    assert get_available_range(board, x=4, y=9) == Range(4, 5, 0, 4)
-    board[0, 9] = Piece(SCOUT, 2, Player.RED)
-    assert get_available_range(board, x=0, y=9) == Range(9, 3, 0, 0)
-    board[9, 0] = Piece(SCOUT, 2, Player.RED)
-    assert get_available_range(board, x=9, y=0) == Range(0, 0, 9, 9)
+def test_board_available_range_scout(board):
+    board[4, 4] = Piece(SCOUT, 2, Colour.RED)
+    data = {
+        "north": (4, None),
+        "east": (1, None),
+        "south": (5, None),
+        "west": (0, None),
+    }
+    assert available_range(board, x=4, y=4) == RangePiece(**data)
+    board[4, 9] = Piece(SCOUT, 2, Colour.RED)
+    data = {
+        "north": (4, None),
+        "east": (1, None),
+        "south": (4, None),
+        "west": (0, None),
+    }
+    assert available_range(board, x=4, y=4) == RangePiece(**data)
+    data = {
+        "north": (4, None),
+        "east": (5, None),
+        "south": (0, None),
+        "west": (4, None),
+    }
+    assert available_range(board, x=4, y=9) == RangePiece(**data)
+    board[0, 9] = Piece(SCOUT, 2, Colour.RED, x=0, y=9)
+    data = {
+        "north": (9, None),
+        "east": (3, None),
+        "south": (0, None),
+        "west": (0, None),
+    }
+    assert available_range(board, x=0, y=9) == RangePiece(**data)
+    board[9, 0] = Piece(SCOUT, 2, Colour.RED, x=9, y=0)
+    data = {
+        "north": (0, None),
+        "east": (0, None),
+        "south": (9, None),
+        "west": (9, None),
+    }
+    assert available_range(board, x=9, y=0) == RangePiece(**data)
+
+
+def test_board_available_range_scout_oppostion_and_same_team(board):
+    board[0, 0] = Piece(MINER, 2, Colour.BLUE, x=0, y=0)  # opposite
+    board[0, 4] = Piece(SCOUT, 2, Colour.RED, x=0, y=4)  # central piece
+    data = {
+        "north": (3, Piece(MINER, 2, Colour.BLUE, x=0, y=0)),
+        "east": (1, None),
+        "south": (5, None),
+        "west": (0, None),
+    }
+    assert available_range(board, x=0, y=4) == RangePiece(**data)
+
+    board[1, 4] = Piece(MINER, 2, Colour.RED, x=1, y=4)  # opposite
+    data = {
+        "north": (3, Piece(MINER, 2, Colour.BLUE, x=0, y=0)),
+        "east": (0, None),
+        "south": (5, None),
+        "west": (0, None),
+    }
+    assert available_range(board, x=0, y=4) == RangePiece(**data)
+
+    board[0, 5] = Piece(MINER, 2, Colour.RED, x=0, y=5)  # same team
+    data = {
+        "north": (3, Piece(MINER, 2, Colour.BLUE, x=0, y=0)),
+        "east": (0, None),
+        "south": (0, None),
+        "west": (0, None),
+    }
+    assert available_range(board, x=0, y=4) == RangePiece(**data)
+
+
+def test_board_available_range_scout_oppostion_at_four_sides(board):
+    board[4, 6] = Piece(SCOUT, 2, Colour.RED, x=4, y=6)  # central piece
+    board[4, 0] = Piece(MINER, 2, Colour.BLUE, x=4, y=0)  # nortt
+    board[9, 6] = Piece(MINER, 2, Colour.BLUE, x=9, y=6)  # east
+    board[4, 9] = Piece(MINER, 2, Colour.BLUE, x=4, y=9)  # south
+    board[0, 6] = Piece(MINER, 2, Colour.BLUE, x=0, y=6)  # west
+
+    data = {
+        "north": (5, Piece(MINER, 2, Colour.BLUE, x=4, y=0)),
+        "east": (4, Piece(MINER, 2, Colour.BLUE, x=9, y=6)),
+        "south": (2, Piece(MINER, 2, Colour.BLUE, x=4, y=9)),
+        "west": (3, Piece(MINER, 2, Colour.BLUE, x=0, y=6)),
+    }
+    assert available_range(board, x=4, y=6) == RangePiece(**data)

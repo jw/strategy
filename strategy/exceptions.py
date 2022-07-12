@@ -11,3 +11,9 @@ class InvalidDimensionsError(Exception):
     """Invalid dimension."""
 
     pass
+
+
+class NoPieceError(Exception):
+    """Invalid piece."""
+
+    pass

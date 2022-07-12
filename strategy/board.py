@@ -1,12 +1,11 @@
 """The Strategy board."""
 import copy
 from random import randrange
-from typing import Any
 
+from strategy.colour import Colour
 from strategy.exceptions import InvalidDimensionsError
-from strategy.game import LAKE, Empty, Field, Lake, log
+from strategy.game import EMPTY, LAKE, Empty, Field, Lake, log
 from strategy.pieces import PIECES, Piece
-from strategy.player import Player
 
 SIZE = 12
 DASH = "-"
@@ -33,7 +32,7 @@ class Board:
 
     def __str__(self) -> str:
         """Show the board."""
-        grid = [[self[x, y] for x in range(10)] for y in range(10)]
+        grid = [[self.get((x, y), Lake) for x in range(10)] for y in range(10)]
         result = self._first_line()
         for x, line in enumerate(grid):
             result += f"{DASH:-^{SIZE + 2}}|" * 10
@@ -44,17 +43,17 @@ class Board:
         result = self._last_line(result)
         return result
 
-    def create_random_pieces(self, player: Player) -> None:
+    def create_random_pieces(self, colour: Colour) -> None:
         """Create a random setup for a given `Player`. RED is at the bottom, BLUE is on top."""
         setup_list = self.random_pieces_list()
-        current_line = 6 if player == Player.RED else 0
+        current_line = 6 if colour == Colour.RED else 0
         for index, piece in enumerate(setup_list):
             if index > 0 and index % 10 == 0:
                 current_line += 1
-            piece.player = player
+            piece.colour = colour
             piece.x = index % 10
             piece.y = current_line
-            log.debug(f"Adding {piece.player.name.lower()} {piece} to {piece.x}|{piece.y}.")
+            log.debug(f"Adding {piece.colour.name.lower()} {piece} to {piece.x}|{piece.y}.")
             self[piece.x, piece.y] = piece
 
     def random_pieces_list(self) -> list[Piece]:
@@ -77,14 +76,14 @@ class Board:
 
     def red(self) -> list[Piece]:
         """Return the red pieces on the board."""
-        return self._by_color(Player.RED)
+        return self._by_colour(Colour.RED)
 
     def blue(self) -> list[Piece]:
         """Return the blue pieces on the board."""
-        return self._by_color(Player.BLUE)
+        return self._by_colour(Colour.BLUE)
 
-    def get(self, key: tuple[int, int], default: Any) -> Any:
-        """Return the cell, or default when an `InvalidDimensionsError` was raised."""
+    def get(self, key: tuple[int, int], default: Field | None) -> Field:
+        """Return the `Field` (i.e. `Piece` or `Empty`), or default when an `InvalidDimensionsError` was raised."""
         try:
             return self[key]
         except InvalidDimensionsError:
@@ -98,32 +97,26 @@ class Board:
         """Get the length of the board."""
         return 10 * 10
 
-    def __getitem__(self, key: tuple) -> Any:
+    def __getitem__(self, key: tuple) -> Piece | Lake | Empty:
         """Get a cell from the board."""
-        if key[0] < 0 or key[0] > 9:
-            raise InvalidDimensionsError()
-        if key[1] < 0 or key[1] > 9:
-            raise InvalidDimensionsError()
-        return self._board.get(key, Empty)
+        self._raise_when_outside_dimensions(key)
+        return self._board.get(key, Empty(EMPTY, x=key[0], y=key[1]))
 
-    def __setitem__(self, key: tuple[int, int], value: Any) -> None:
+    def __setitem__(self, key: tuple[int, int], value: Piece | Lake | Empty) -> None:
         """Put `value` in a cell of the board."""
-        if key[0] < 0 or key[0] > 9:
-            raise InvalidDimensionsError()
-        if key[1] < 0 or key[1] > 9:
-            raise InvalidDimensionsError()
+        self._raise_when_outside_dimensions(key)
         self._board[key] = value
 
     def _add_lakes(self) -> None:
         """Add the lakes to the board."""
         for lake in self.LAKES:
-            self._board[lake] = Lake
+            self._board[lake] = Lake(LAKE, x=lake[0], y=lake[1])
 
-    def _by_color(self, player: Player) -> list[Piece]:
+    def _by_colour(self, colour: Colour) -> list[Piece]:
         """Return all the pieces of the given player."""
         pieces = []
         for piece in self._board.values():
-            if not isinstance(piece, Field) and piece.player == player:
+            if isinstance(piece, Piece) and piece.colour == colour:
                 pieces.append(piece)
         return pieces
 
@@ -143,7 +136,16 @@ class Board:
     def _format(self, cell: Piece | Field, x: int, y: int, length: int = SIZE) -> str:
         """Return a formatted cell."""
         if isinstance(cell, Piece):
-            color = "red" if cell.player == Player.RED else "blue"
-        if isinstance(cell, Field):
-            color = "green" if cell.name == LAKE else "bright_black"
-        return f"[{color}]{cell.name:^{length}}[/{color}] | "
+            colour = "red" if cell.colour == Colour.RED else "blue"
+        elif isinstance(cell, Lake):
+            colour = "green"
+        else:
+            colour = "bright_black"
+        return f"[{colour}]{cell.name:^{length}}[/{colour}] | "
+
+    def _raise_when_outside_dimensions(self, key: tuple[int, int]) -> None:
+        """Raise when outside the board dimensions."""
+        if key[0] < 0 or key[0] > 9:
+            raise InvalidDimensionsError()
+        if key[1] < 0 or key[1] > 9:
+            raise InvalidDimensionsError()

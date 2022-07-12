@@ -1,8 +1,9 @@
 """The Strategy pieces."""
 from functools import total_ordering
 
+from strategy.colour import Colour
 from strategy.exceptions import InvalidOperationError
-from strategy.player import Player
+from strategy.game import Field
 
 BOMB = "bomb"
 MARSHAL = "marshal"
@@ -19,22 +20,20 @@ FLAG = "flag"
 
 
 @total_ordering
-class Piece:
+class Piece(Field):
     """The Strategy piece."""
 
     def __init__(
-        self, name: str, power: int, player: Player = Player.UNKNOWN, x: int | None = None, y: int | None = None
+        self, name: str, power: int, colour: Colour | None = None, x: int | None = None, y: int | None = None
     ) -> None:
-        """Create a type by name and power."""
-        self.name = name
+        """Create a type by power and colour."""
+        super().__init__(name, x, y)
         self.power = power
-        self.player = player
-        self.x = x
-        self.y = y
+        self.colour = colour
 
     def __str__(self) -> str:
         """Show the piece."""
-        return f"{self.player.name.lower()} {self.name} ({self.power})"
+        return f"{self.colour.name.lower()} {self.name} ({self.power})"
 
     def attack(self, other: "Piece") -> bool | None:
         """
@@ -56,6 +55,10 @@ class Piece:
     def can_attack(self) -> bool:
         """Return `True` when this piece can attack.  Otherwise, return `False`."""
         return self.name != BOMB and self.name != FLAG
+
+    def __repr__(self) -> str:
+        """Show the piece."""
+        return self.__str__()
 
     def __eq__(self, other: "Piece") -> bool:
         """Return `True` when self and other are the same type and have the same name."""

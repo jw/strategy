@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from pydantic import BaseModel, root_validator
 
-from strategy.player import Player
+from strategy.colour import Colour
 
 log = logging.getLogger(__name__)
 
@@ -14,17 +14,27 @@ LAKE = "lake"
 
 @dataclass
 class Field:
-    """The base class of an empty or lake field in the `Board`."""
+    """The base class of the `Piece`s, the `Empty` field or the `Lake` field in the `Board`."""
 
     name: str
+    x: int
+    y: int
 
     def __str__(self) -> str:
-        """Show the Cell."""
-        return self.name
+        """Show the Field."""
+        return f"{self.name} ({self.x=}, {self.y=})"
 
 
-Empty = Field(EMPTY)
-Lake = Field(LAKE)
+class Empty(Field):
+    """An empty field."""
+
+    pass
+
+
+class Lake(Field):
+    """A lake field."""
+
+    pass
 
 
 class Action(BaseModel):
@@ -32,7 +42,7 @@ class Action(BaseModel):
 
     source: tuple[int, int]
     destination: tuple[int, int]
-    player: Player
+    player: Colour
 
     @root_validator
     def check_action(cls, action: "Action") -> "Action":  # noqa: N805
