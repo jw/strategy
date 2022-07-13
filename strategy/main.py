@@ -1,6 +1,7 @@
 """Strategy main module."""
 
 import logging
+import random
 from dataclasses import dataclass
 from random import randrange
 
@@ -41,6 +42,18 @@ class RangePiece:
         if self.west[1] is not None:
             return True, self.west[1]
         return False, None
+
+    @property
+    def can_move(self) -> tuple[bool, dict]:
+        """Return `True` and the directions when a `piece` can move, `False` and an empty dict otherwise."""
+        directions = {
+            "north": self.north[0],
+            "east": self.east[0],
+            "south": self.south[0],
+            "west": self.west[0],
+        }
+        movable = any([direction > 0 for direction in directions.values()])
+        return movable, directions
 
 
 EmptyRangePiece = RangePiece()
@@ -137,4 +150,15 @@ if __name__ == "__main__":
         else:
             attack = "cannot attack any opponent piece"
         console.print(f"The {piece} can reach {range}, so {attack}.")
+
+    movable_pieces = []
+    for piece in board.red():
+        range = available_range(board, piece.x, piece.y)
+        if range.can_move[0]:
+            movable_pieces.append((piece, range))
+    console.print(
+        f"Movable pieces: {', '.join([piece.colour.name.lower() + ' ' + piece.name for piece, _ in movable_pieces])}."
+    )
+    piece, range = random.choice(movable_pieces)
+    console.print(f"Will move {piece} ({range}).")
     console.print("Strategy ended.")
