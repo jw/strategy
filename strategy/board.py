@@ -160,6 +160,7 @@ class Board:
             raise InvalidDimensionsError()
 
     def _str_to_int(self, s: str) -> int:
+        """Return s in `self.TOP` as an int. `a` is 0,... `j` is 9. This method is case-insensitive."""
         if not isinstance(s, str):
             raise InvalidCoordinateError
         lower_char = s.lower()
@@ -168,6 +169,11 @@ class Board:
         return self.TOP.index(lower_char)
 
     def _coordinate_to_tuple(self, s: str) -> tuple[int, int]:
+        """
+        Return a chess coordinate to a tuple[int, int].
+
+        "A10" becomes (0, 0), "j1" becomes (9, 9). This method is case-insensitive.
+        """
         try:
             x = s[0].lower()  # first should be a character
             y = s[1:]  # second should be a positive int
@@ -181,6 +187,12 @@ class Board:
             raise InvalidCoordinateError
 
     def _get_coordinates(self, key: tuple[int, int] | tuple[str, int] | str) -> tuple[int, int]:
+        """
+        Return tuple[int, int] coordinates based on the type.
+
+        :param key:
+        :return:
+        """
         if isinstance(key, tuple):
             if isinstance(key[0], int) and 0 <= key[0] <= 9 and isinstance(key[1], int) and 0 <= key[1] <= 9:
                 return key

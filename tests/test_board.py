@@ -93,6 +93,7 @@ def test_board_coordinate_to_tuple(board):
     assert board._coordinate_to_tuple("a10") == (0, 0)
     assert board._coordinate_to_tuple("b2") == (1, 8)
     assert board._coordinate_to_tuple("h6") == (7, 4)
+    assert board._coordinate_to_tuple("j1") == (9, 9)
     with pytest.raises(InvalidCoordinateError):
         board._coordinate_to_tuple("z2")
     with pytest.raises(InvalidCoordinateError):
