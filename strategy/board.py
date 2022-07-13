@@ -1,9 +1,10 @@
 """The Strategy board."""
+import contextlib
 import copy
 from random import randrange
 
 from strategy.colour import Colour
-from strategy.exceptions import InvalidDimensionsError
+from strategy.exceptions import InvalidCoordinateError, InvalidDimensionsError
 from strategy.game import EMPTY, LAKE, Empty, Field, Lake, log
 from strategy.pieces import PIECES, Piece
 
@@ -16,14 +17,21 @@ class Board:
     The strategy board.
 
     The top left is x=0 and y=0, the bottom right is x=9, y=9.
+
     The left lake is (2, 4), (3, 4), (2, 5) and (3, 5).
     The right lake is (6, 4), (7, 4), (6, 5) and (7, 5).
     The top half is for the blue player, the bottom half for the red player.
+
+    Each field of the board can be visited via board[int, int], like board[0, 0] or
+    board[5, 6].  It is also possible to use chess based coordinates, like board["a10"]
+    or board["A", 10] (both are the same as board[0, 0]).
     """
 
     LEFT_LAKE = [(2, 4), (3, 4), (2, 5), (3, 5)]
     RIGHT_LAKE = [(6, 4), (7, 4), (6, 5), (7, 5)]
     LAKES = LEFT_LAKE + RIGHT_LAKE
+
+    TOP = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
 
     def __init__(self) -> None:
         """Create an empty board."""
@@ -36,7 +44,7 @@ class Board:
         result = self._first_line()
         for x, line in enumerate(grid):
             result += f"{DASH:-^{SIZE + 2}}|" * 10
-            result += f"\n  {x + 1:2} | "
+            result += f"\n  {10 - x:2} | "
             for y, cell in enumerate(line):
                 result += self._format(cell, x, y)
             result += "\n ----|"
@@ -82,11 +90,11 @@ class Board:
         """Return the blue pieces on the board."""
         return self._by_colour(Colour.BLUE)
 
-    def get(self, key: tuple[int, int], default: Field | None) -> Field:
+    def get(self, key: tuple[int, int] | tuple[str, int] | str, default: Field | None) -> Field:
         """Return the `Field` (i.e. `Piece` or `Empty`), or default when an `InvalidDimensionsError` was raised."""
         try:
-            return self[key]
-        except InvalidDimensionsError:
+            return self[self._get_coordinates(key)]
+        except (InvalidDimensionsError, InvalidCoordinateError):
             return default
 
     def __repr__(self) -> str:
@@ -97,10 +105,11 @@ class Board:
         """Get the length of the board."""
         return 10 * 10
 
-    def __getitem__(self, key: tuple) -> Piece | Lake | Empty:
+    def __getitem__(self, key: tuple[int, int] | tuple[str, int] | str) -> Piece | Lake | Empty:
         """Get a cell from the board."""
-        self._raise_when_outside_dimensions(key)
-        return self._board.get(key, Empty(EMPTY, x=key[0], y=key[1]))
+        coordinates = self._get_coordinates(key)
+        self._raise_when_outside_dimensions(coordinates)
+        return self._board.get(coordinates, Empty(EMPTY, x=coordinates[0], y=coordinates[1]))
 
     def __setitem__(self, key: tuple[int, int], value: Piece | Lake | Empty) -> None:
         """Put `value` in a cell of the board."""
@@ -123,7 +132,7 @@ class Board:
     def _first_line(self) -> str:
         """Create the first line of the board."""
         result = "\n     |"
-        result += "|".join([f"{item:^{SIZE + 2}}" for item in range(1, 11)])
+        result += "|".join([f"{item.upper():^{SIZE + 2}}" for item in self.TOP])
         result += "|\n ----|"
         return result
 
@@ -149,3 +158,35 @@ class Board:
             raise InvalidDimensionsError()
         if key[1] < 0 or key[1] > 9:
             raise InvalidDimensionsError()
+
+    def _str_to_int(self, s: str) -> int:
+        if not isinstance(s, str):
+            raise InvalidCoordinateError
+        lower_char = s.lower()
+        if lower_char not in self.TOP:
+            raise InvalidCoordinateError
+        return self.TOP.index(lower_char)
+
+    def _coordinate_to_tuple(self, s: str) -> tuple[int, int]:
+        try:
+            x = s[0].lower()  # first should be a character
+            y = s[1:]  # second should be a positive int
+            if x in self.TOP:
+                with contextlib.suppress(ValueError):
+                    y_int = int(y)
+                    if 1 <= y_int <= 10:
+                        return self._str_to_int(x), 10 - y_int
+            raise InvalidCoordinateError
+        except (IndexError, TypeError):
+            raise InvalidCoordinateError
+
+    def _get_coordinates(self, key: tuple[int, int] | tuple[str, int] | str) -> tuple[int, int]:
+        if isinstance(key, tuple):
+            if isinstance(key[0], int) and 0 <= key[0] <= 9 and isinstance(key[1], int) and 0 <= key[1] <= 9:
+                return key
+            elif isinstance(key[0], str) and isinstance(key[1], int) and 1 <= key[1] <= 10:
+                return self._str_to_int(key[0]), 10 - key[1]
+            else:
+                raise InvalidCoordinateError
+        elif isinstance(key, str):
+            return self._coordinate_to_tuple(key)

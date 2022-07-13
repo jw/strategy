@@ -3,7 +3,7 @@ from _pytest.fixtures import fixture
 
 from strategy.board import Board
 from strategy.colour import Colour
-from strategy.exceptions import InvalidDimensionsError, NoPieceError
+from strategy.exceptions import InvalidCoordinateError, NoPieceError
 from strategy.main import EmptyRangePiece, RangePiece, available_range
 from strategy.pieces import BOMB, CAPTAIN, FLAG, MINER, SCOUT, SPY, Piece
 
@@ -185,7 +185,7 @@ def test_board_available_range_complete_block(board):
 
 
 def test_board_available_range_raises(board):
-    with pytest.raises(InvalidDimensionsError):
+    with pytest.raises(InvalidCoordinateError):
         available_range(board, x=-3, y=8)
 
 

@@ -17,3 +17,9 @@ class NoPieceError(Exception):
     """Invalid piece."""
 
     pass
+
+
+class InvalidCoordinateError(Exception):
+    """Invalid coordinate given."""
+
+    pass
