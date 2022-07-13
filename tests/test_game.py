@@ -64,8 +64,8 @@ def test_board_available_range_empty_left_bottom_corner(board):
 def test_board_available_range_corners_with_opposition(board):
     # left bottom
     data = {
-        "north": (1, Piece(MINER, 3, Colour.BLUE, x=0, y=8)),
-        "east": (1, Piece(MINER, 3, Colour.BLUE, x=1, y=9)),
+        "north": (0, Piece(MINER, 3, Colour.BLUE, x=0, y=8)),
+        "east": (0, Piece(MINER, 3, Colour.BLUE, x=1, y=9)),
         "south": (0, None),
         "west": (0, None),
     }
@@ -77,10 +77,10 @@ def test_board_available_range_corners_with_opposition(board):
 
     # right bottom
     data = {
-        "north": (1, Piece(MINER, 3, Colour.BLUE, x=9, y=8)),
+        "north": (0, Piece(MINER, 3, Colour.BLUE, x=9, y=8)),
         "east": (0, None),
         "south": (0, None),
-        "west": (1, Piece(MINER, 3, Colour.BLUE, x=8, y=9)),
+        "west": (0, Piece(MINER, 3, Colour.BLUE, x=8, y=9)),
     }
     required = RangePiece(**data)
     board[9, 8] = Piece(MINER, 3, Colour.BLUE, x=9, y=8)
@@ -91,8 +91,8 @@ def test_board_available_range_corners_with_opposition(board):
     # left top
     data = {
         "north": (0, None),
-        "east": (1, Piece(MINER, 3, Colour.BLUE, x=1, y=0)),
-        "south": (1, Piece(MINER, 3, Colour.BLUE, x=0, y=1)),
+        "east": (0, Piece(MINER, 3, Colour.BLUE, x=1, y=0)),
+        "south": (0, Piece(MINER, 3, Colour.BLUE, x=0, y=1)),
         "west": (0, None),
     }
     required = RangePiece(**data)
@@ -105,8 +105,8 @@ def test_board_available_range_corners_with_opposition(board):
     data = {
         "north": (0, None),
         "east": (0, None),
-        "south": (1, Piece(MINER, 3, Colour.BLUE, x=9, y=1)),
-        "west": (1, Piece(MINER, 3, Colour.BLUE, x=8, y=0)),
+        "south": (0, Piece(MINER, 3, Colour.BLUE, x=9, y=1)),
+        "west": (0, Piece(MINER, 3, Colour.BLUE, x=8, y=0)),
     }
     required = RangePiece(**data)
     board[8, 0] = Piece(MINER, 3, Colour.BLUE, x=8, y=0)
@@ -261,9 +261,9 @@ def test_board_available_range_scout_oppostion_and_same_team(board):
     assert available_range(board, x=0, y=4) == RangePiece(**data)
 
 
-def test_board_available_range_scout_oppostion_at_four_sides(board):
+def test_board_available_range_scout_opposition_at_four_sides(board):
     board[4, 6] = Piece(SCOUT, 2, Colour.RED, x=4, y=6)  # central piece
-    board[4, 0] = Piece(MINER, 2, Colour.BLUE, x=4, y=0)  # nortt
+    board[4, 0] = Piece(MINER, 2, Colour.BLUE, x=4, y=0)  # north
     board[9, 6] = Piece(MINER, 2, Colour.BLUE, x=9, y=6)  # east
     board[4, 9] = Piece(MINER, 2, Colour.BLUE, x=4, y=9)  # south
     board[0, 6] = Piece(MINER, 2, Colour.BLUE, x=0, y=6)  # west
@@ -275,3 +275,15 @@ def test_board_available_range_scout_oppostion_at_four_sides(board):
         "west": (3, Piece(MINER, 2, Colour.BLUE, x=0, y=6)),
     }
     assert available_range(board, x=4, y=6) == RangePiece(**data)
+
+
+def test_board_available_range_opposition_north(board):
+    board[4, 4] = Piece(MINER, 2, Colour.RED, x=4, y=6)  # central piece
+    board[4, 3] = Piece(MINER, 2, Colour.BLUE, x=4, y=3)  # opposition
+    data = {
+        "north": (0, Piece(MINER, 2, Colour.BLUE, x=4, y=3)),
+        "east": (1, None),
+        "south": (1, None),
+        "west": (0, None),
+    }
+    assert available_range(board, x=4, y=4) == RangePiece(**data)
