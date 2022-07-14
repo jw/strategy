@@ -17,6 +17,7 @@ DASH = "-"
 class RangePiece:
     """The range of a Piece in a cell on the board: distance and possible piece."""
 
+    piece: Piece = None
     north: tuple[int, Piece | Empty | None] = (0, None)
     east: tuple[int, Piece | Empty | None] = (0, None)
     south: tuple[int, Piece | Empty | None] = (0, None)
@@ -170,7 +171,7 @@ class Board:
             west_field = self.get((x - 1, y), None)
             west = self._create_range(piece, west_field)
 
-            return RangePiece(north, east, south, west)
+            return RangePiece(piece, north, east, south, west)
 
     def __repr__(self) -> str:
         """Show the board."""
@@ -304,7 +305,7 @@ class Board:
                 break
             i += 1
         west = self._create_scout_range(i, piece, west_field)
-        return RangePiece(north, east, south, west)
+        return RangePiece(piece, north, east, south, west)
 
     def _create_range(self, source: Piece, destination: Piece | Empty | None) -> tuple[int, Piece | None]:
         """Create a range tuple containing the length (0 or 1) and the possible `Piece` that can be attacked."""
