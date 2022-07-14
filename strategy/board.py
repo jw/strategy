@@ -14,7 +14,7 @@ DASH = "-"
 
 
 @dataclass
-class RangePiece:
+class PieceRange:
     """The range of a Piece in a cell on the board: distance and possible piece."""
 
     piece: Piece = None
@@ -49,7 +49,7 @@ class RangePiece:
         return movable, directions
 
 
-EmptyRangePiece = RangePiece()
+EmptyRangePiece = PieceRange()
 
 
 class Board:
@@ -147,7 +147,7 @@ class Board:
         if piece == Empty(EMPTY, source[0], source[1]):
             raise NoPieceError
 
-    def available_range(self, x: int, y: int) -> RangePiece:
+    def available_range(self, x: int, y: int) -> PieceRange:
         """Return the available `RangePiece` of a `Piece` at a given position on the board."""
         piece = self[x, y]
         if not isinstance(piece, Piece):
@@ -171,7 +171,7 @@ class Board:
             west_field = self.get((x - 1, y), None)
             west = self._create_range(piece, west_field)
 
-            return RangePiece(piece, north, east, south, west)
+            return PieceRange(piece, north, east, south, west)
 
     def __repr__(self) -> str:
         """Show the board."""
@@ -279,7 +279,7 @@ class Board:
         elif isinstance(key, str):
             return self._coordinate_to_tuple(key)
 
-    def _calculate_scout_range_piece(self, piece: Piece, x: int, y: int) -> RangePiece:
+    def _calculate_scout_range_piece(self, piece: Piece, x: int, y: int) -> PieceRange:
         """Return the `RangePiece` for a `SCOUT` in the board."""
         i = 1
         while north_field := self.get((x, y - i), None):
@@ -305,7 +305,7 @@ class Board:
                 break
             i += 1
         west = self._create_scout_range(i, piece, west_field)
-        return RangePiece(piece, north, east, south, west)
+        return PieceRange(piece, north, east, south, west)
 
     def _create_range(self, source: Piece, destination: Piece | Empty | None) -> tuple[int, Piece | None]:
         """Create a range tuple containing the length (0 or 1) and the possible `Piece` that can be attacked."""
