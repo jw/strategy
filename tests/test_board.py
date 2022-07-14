@@ -4,9 +4,9 @@ from pytest import fixture
 
 from strategy.board import Board
 from strategy.colour import Colour
-from strategy.exceptions import InvalidCoordinateError, InvalidDimensionsError
+from strategy.exceptions import InvalidCoordinateError, InvalidDimensionsError, NoPieceError
 from strategy.game import EMPTY, LAKE, Empty, Lake
-from strategy.pieces import Piece
+from strategy.pieces import SCOUT, Piece
 
 
 @fixture
@@ -142,3 +142,10 @@ def test_board_get_coordinates(board):
         board._get_coordinates("z-4")
     with pytest.raises(InvalidCoordinateError):
         board._get_coordinates("aaa4")
+
+
+def test_board_move(board):
+    with pytest.raises(NoPieceError):
+        board.move((0, 0), (0, 1))
+    board[6, 7] = Piece(SCOUT, Colour.RED, x=6, y=7)
+    board.move((6, 7), (8, 9))

@@ -1,15 +1,54 @@
 """The Strategy board."""
 import contextlib
 import copy
+from dataclasses import dataclass
 from random import randrange
 
 from strategy.colour import Colour
-from strategy.exceptions import InvalidCoordinateError, InvalidDimensionsError
+from strategy.exceptions import InvalidCoordinateError, InvalidDimensionsError, NoPieceError
 from strategy.game import EMPTY, LAKE, Empty, Field, Lake, log
-from strategy.pieces import PIECES, Piece
+from strategy.pieces import BOMB, FLAG, PIECES, SCOUT, Piece
 
 SIZE = 12
 DASH = "-"
+
+
+@dataclass
+class RangePiece:
+    """The range of a Piece in a cell on the board: distance and possible piece."""
+
+    north: tuple[int, Piece | Empty | None] = (0, None)
+    east: tuple[int, Piece | Empty | None] = (0, None)
+    south: tuple[int, Piece | Empty | None] = (0, None)
+    west: tuple[int, Piece | Empty | None] = (0, None)
+
+    @property
+    def has_opponent_in_sight(self) -> tuple[bool, Piece | None]:
+        """Return `(True, Piece)` when a `Piece` can be attached, `(False, None)` otherwise."""
+        if self.north[1] is not None:
+            return True, self.north[1]
+        if self.east[1] is not None:
+            return True, self.east[1]
+        if self.south[1] is not None:
+            return True, self.south[1]
+        if self.west[1] is not None:
+            return True, self.west[1]
+        return False, None
+
+    @property
+    def can_move(self) -> tuple[bool, dict]:
+        """Return `True` and the directions when a `piece` can move, `False` and an empty dict otherwise."""
+        directions = {
+            "north": self.north[0],
+            "east": self.east[0],
+            "south": self.south[0],
+            "west": self.west[0],
+        }
+        movable = any([direction > 0 for direction in directions.values()])
+        return movable, directions
+
+
+EmptyRangePiece = RangePiece()
 
 
 class Board:
@@ -96,6 +135,42 @@ class Board:
             return self[self._get_coordinates(key)]
         except (InvalidDimensionsError, InvalidCoordinateError):
             return default
+
+    def move(self, source: tuple[int, int], dest: tuple[int, int]) -> None:
+        """
+        Move `Piece` at `source` to `destination`, and return the result of the move.
+
+        This might entail an attack.
+        """
+        piece = self[source]
+        if piece == Empty(EMPTY, source[0], source[1]):
+            raise NoPieceError
+
+    def available_range(self, x: int, y: int) -> RangePiece:
+        """Return the available `RangePiece` of a `Piece` at a given position on the board."""
+        piece = self[x, y]
+        if not isinstance(piece, Piece):
+            raise NoPieceError
+        if piece.name == FLAG or piece.name == BOMB:
+            return EmptyRangePiece
+
+        if piece.name == SCOUT:
+            return self._calculate_scout_range_piece(piece, x, y)
+
+        else:
+            north_field = self.get((x, y - 1), None)
+            north = self._create_range(piece, north_field)
+
+            east_field = self.get((x + 1, y), None)
+            east = self._create_range(piece, east_field)
+
+            south_field = self.get((x, y + 1), None)
+            south = self._create_range(piece, south_field)
+
+            west_field = self.get((x - 1, y), None)
+            west = self._create_range(piece, west_field)
+
+            return RangePiece(north, east, south, west)
 
     def __repr__(self) -> str:
         """Show the board."""
@@ -202,3 +277,49 @@ class Board:
                 raise InvalidCoordinateError
         elif isinstance(key, str):
             return self._coordinate_to_tuple(key)
+
+    def _calculate_scout_range_piece(self, piece: Piece, x: int, y: int) -> RangePiece:
+        """Return the `RangePiece` for a `SCOUT` in the board."""
+        i = 1
+        while north_field := self.get((x, y - i), None):
+            if not isinstance(north_field, Empty):
+                break
+            i += 1
+        north = self._create_scout_range(i, piece, north_field)
+        i = 1
+        while east_field := self.get((x + i, y), None):
+            if not isinstance(east_field, Empty):
+                break
+            i += 1
+        east = self._create_scout_range(i, piece, east_field)
+        i = 1
+        while south_field := self.get((x, y + i), None):
+            if not isinstance(south_field, Empty):
+                break
+            i += 1
+        south = self._create_scout_range(i, piece, south_field)
+        i = 1
+        while west_field := self.get((x - i, y), None):
+            if not isinstance(west_field, Empty):
+                break
+            i += 1
+        west = self._create_scout_range(i, piece, west_field)
+        return RangePiece(north, east, south, west)
+
+    def _create_range(self, source: Piece, destination: Piece | Empty | None) -> tuple[int, Piece | None]:
+        """Create a range tuple containing the length (0 or 1) and the possible `Piece` that can be attacked."""
+        if destination and isinstance(destination, Empty):
+            north = 1, None
+        elif destination and isinstance(destination, Piece) and destination.colour != source.colour:
+            north = 0, destination
+        else:
+            north = 0, None
+        return north
+
+    def _create_scout_range(self, index: int, source: Piece, destination: Piece | None) -> tuple[int, Piece | None]:
+        """Create a range tuple containing the length (`index - 1`) and the possible `Piece` that can be attacked."""
+        if destination and isinstance(destination, Piece) and destination.colour != source.colour:
+            north = index - 1, destination
+        else:
+            north = index - 1, None
+        return north
