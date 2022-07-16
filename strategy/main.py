@@ -27,8 +27,8 @@ if __name__ == "__main__":
     for i in range(10):
         piece = board[i, 6]
         range = board.available_range(piece.x, piece.y)
-        if range.has_opponent_in_sight[1]:
-            attack = f"can attack {range.has_opponent_in_sight[1]}"
+        if range.can_attack:
+            attack = f"can attack {range.attackables}"
         else:
             attack = "cannot attack any opponent piece"
         console.print(f"The {piece} can reach {range}, so {attack}.")
@@ -36,11 +36,9 @@ if __name__ == "__main__":
     movable_pieces = []
     for piece in board.red():
         range = board.available_range(piece.x, piece.y)
-        if range.can_move[0]:
-            movable_pieces.append((piece, range))
-    console.print(
-        f"Movable pieces: {', '.join([piece.colour.name.lower() + ' ' + piece.name for piece, _ in movable_pieces])}."
-    )
-    piece, range = random.choice(movable_pieces)
-    console.print(f"Will move {piece} ({range}).")
+        if range.can_move:
+            movable_pieces.append(range)
+    console.print(f"Movable pieces: {', '.join([f'{piece_range.piece}' for piece_range in movable_pieces])}.")
+    piece_range = random.choice(movable_pieces)
+    console.print(f"Will move {piece_range.piece} ({piece_range}).")
     console.print("Strategy ended.")

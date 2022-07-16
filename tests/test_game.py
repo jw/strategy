@@ -71,8 +71,8 @@ def test_board_available_range_corners_with_opposition(board):
     # left bottom
     data = {
         "piece": piece,
-        "north": (0, Piece(MINER, 3, Colour.BLUE, x=0, y=8)),
-        "east": (0, Piece(MINER, 3, Colour.BLUE, x=1, y=9)),
+        "north": (1, Piece(MINER, 3, Colour.BLUE, x=0, y=8)),
+        "east": (1, Piece(MINER, 3, Colour.BLUE, x=1, y=9)),
         "south": (0, None),
         "west": (0, None),
     }
@@ -86,10 +86,10 @@ def test_board_available_range_corners_with_opposition(board):
     piece = Piece(CAPTAIN, 5, Colour.RED, x=9, y=9)
     data = {
         "piece": piece,
-        "north": (0, Piece(MINER, 3, Colour.BLUE, x=9, y=8)),
+        "north": (1, Piece(MINER, 3, Colour.BLUE, x=9, y=8)),
         "east": (0, None),
         "south": (0, None),
-        "west": (0, Piece(MINER, 3, Colour.BLUE, x=8, y=9)),
+        "west": (1, Piece(MINER, 3, Colour.BLUE, x=8, y=9)),
     }
     required = PieceRange(**data)
     board[9, 8] = Piece(MINER, 3, Colour.BLUE, x=9, y=8)
@@ -102,8 +102,8 @@ def test_board_available_range_corners_with_opposition(board):
     data = {
         "piece": piece,
         "north": (0, None),
-        "east": (0, Piece(MINER, 3, Colour.BLUE, x=1, y=0)),
-        "south": (0, Piece(MINER, 3, Colour.BLUE, x=0, y=1)),
+        "east": (1, Piece(MINER, 3, Colour.BLUE, x=1, y=0)),
+        "south": (1, Piece(MINER, 3, Colour.BLUE, x=0, y=1)),
         "west": (0, None),
     }
     required = PieceRange(**data)
@@ -118,8 +118,8 @@ def test_board_available_range_corners_with_opposition(board):
         "piece": piece,
         "north": (0, None),
         "east": (0, None),
-        "south": (0, Piece(MINER, 3, Colour.BLUE, x=9, y=1)),
-        "west": (0, Piece(MINER, 3, Colour.BLUE, x=8, y=0)),
+        "south": (1, Piece(MINER, 3, Colour.BLUE, x=9, y=1)),
+        "west": (1, Piece(MINER, 3, Colour.BLUE, x=8, y=0)),
     }
     required = PieceRange(**data)
     board[8, 0] = Piece(MINER, 3, Colour.BLUE, x=8, y=0)
@@ -269,7 +269,7 @@ def test_board_available_range_scout_oppostion_and_same_team(board):
     board[0, 4] = piece
     data = {
         "piece": piece,
-        "north": (3, Piece(MINER, 2, Colour.BLUE, x=0, y=0)),
+        "north": (4, Piece(MINER, 2, Colour.BLUE, x=0, y=0)),
         "east": (1, None),
         "south": (5, None),
         "west": (0, None),
@@ -279,7 +279,7 @@ def test_board_available_range_scout_oppostion_and_same_team(board):
     board[1, 4] = Piece(MINER, 2, Colour.RED, x=1, y=4)  # opposite
     data = {
         "piece": piece,
-        "north": (3, Piece(MINER, 2, Colour.BLUE, x=0, y=0)),
+        "north": (4, Piece(MINER, 2, Colour.BLUE, x=0, y=0)),
         "east": (0, None),
         "south": (5, None),
         "west": (0, None),
@@ -289,7 +289,7 @@ def test_board_available_range_scout_oppostion_and_same_team(board):
     board[0, 5] = Piece(MINER, 2, Colour.RED, x=0, y=5)  # same team
     data = {
         "piece": piece,
-        "north": (3, Piece(MINER, 2, Colour.BLUE, x=0, y=0)),
+        "north": (4, Piece(MINER, 2, Colour.BLUE, x=0, y=0)),
         "east": (0, None),
         "south": (0, None),
         "west": (0, None),
@@ -307,10 +307,10 @@ def test_board_available_range_scout_opposition_at_four_sides(board):
 
     data = {
         "piece": piece,
-        "north": (5, Piece(MINER, 2, Colour.BLUE, x=4, y=0)),
-        "east": (4, Piece(MINER, 2, Colour.BLUE, x=9, y=6)),
-        "south": (2, Piece(MINER, 2, Colour.BLUE, x=4, y=9)),
-        "west": (3, Piece(MINER, 2, Colour.BLUE, x=0, y=6)),
+        "north": (6, Piece(MINER, 2, Colour.BLUE, x=4, y=0)),
+        "east": (5, Piece(MINER, 2, Colour.BLUE, x=9, y=6)),
+        "south": (3, Piece(MINER, 2, Colour.BLUE, x=4, y=9)),
+        "west": (4, Piece(MINER, 2, Colour.BLUE, x=0, y=6)),
     }
     assert board.available_range(x=4, y=6) == PieceRange(**data)
 
@@ -321,7 +321,7 @@ def test_board_available_range_opposition_north(board):
     board[4, 3] = Piece(MINER, 2, Colour.BLUE, x=4, y=3)  # opposition
     data = {
         "piece": piece,
-        "north": (0, Piece(MINER, 2, Colour.BLUE, x=4, y=3)),
+        "north": (1, Piece(MINER, 2, Colour.BLUE, x=4, y=3)),
         "east": (1, None),
         "south": (1, None),
         "west": (0, None),

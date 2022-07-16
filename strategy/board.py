@@ -15,41 +15,41 @@ DASH = "-"
 
 @dataclass
 class PieceRange:
-    """The range of a Piece in a cell on the board: distance and possible piece."""
+    """The range of a Piece in a cell on the board: distance and possible piece that it can reach."""
 
-    piece: Piece = None
-    north: tuple[int, Piece | Empty | None] = (0, None)
-    east: tuple[int, Piece | Empty | None] = (0, None)
-    south: tuple[int, Piece | Empty | None] = (0, None)
-    west: tuple[int, Piece | Empty | None] = (0, None)
+    piece: Piece
 
-    @property
-    def has_opponent_in_sight(self) -> tuple[bool, Piece | None]:
-        """Return `(True, Piece)` when a `Piece` can be attached, `(False, None)` otherwise."""
-        if self.north[1] is not None:
-            return True, self.north[1]
-        if self.east[1] is not None:
-            return True, self.east[1]
-        if self.south[1] is not None:
-            return True, self.south[1]
-        if self.west[1] is not None:
-            return True, self.west[1]
-        return False, None
+    north: tuple[int, Piece | None] = (0, None)
+    east: tuple[int, Piece | None] = (0, None)
+    south: tuple[int, Piece | None] = (0, None)
+    west: tuple[int, Piece | None] = (0, None)
 
     @property
-    def can_move(self) -> tuple[bool, dict]:
-        """Return `True` and the directions when a `piece` can move, `False` and an empty dict otherwise."""
-        directions = {
-            "north": self.north[0],
-            "east": self.east[0],
-            "south": self.south[0],
-            "west": self.west[0],
-        }
-        movable = any([direction > 0 for direction in directions.values()])
-        return movable, directions
+    def can_move(self) -> bool:
+        """Return `True` when a `piece` can move or attack another `Piece`, `False` otherwise."""
+        return self.north[0] > 0 or self.east[0] > 0 or self.south[0] > 0 or self.west[0] > 0
+
+    @property
+    def can_attack(self) -> bool:
+        """Return `True` when a `piece` can attack another `Piece`, `False` otherwise."""
+        return self.north[1] or self.east[1] or self.south[1] or self.west[1]
+
+    @property
+    def attackables(self) -> dict[str, Piece]:
+        """Return the attackable `Pieces` in a `dict[str, Piece]`."""
+        d = {}
+        if self.north[1]:
+            d["north"] = self.north[1]
+        if self.east[1]:
+            d["east"] = self.east[1]
+        if self.south[1]:
+            d["south"] = self.south[1]
+        if self.west[1]:
+            d["west"] = self.west[1]
+        return d
 
 
-EmptyRangePiece = PieceRange()
+EmptyRangePiece = PieceRange(piece=None)
 
 
 class Board:
@@ -130,7 +130,7 @@ class Board:
         """Return the blue pieces on the board."""
         return self._by_colour(Colour.BLUE)
 
-    def get(self, key: tuple[int, int] | tuple[str, int] | str, default: Field | None) -> Field:
+    def get(self, key: tuple[int, int] | tuple[str, int] | str, default: Field | None) -> Field | None:
         """Return the `Field` (i.e. `Piece` or `Empty`), or default when an `InvalidDimensionsError` was raised."""
         try:
             return self[self._get_coordinates(key)]
@@ -148,7 +148,13 @@ class Board:
             raise NoPieceError
 
     def available_range(self, x: int, y: int) -> PieceRange:
-        """Return the available `RangePiece` of a `Piece` at a given position on the board."""
+        """
+        Return the available `PieceRange` of a `Piece` at a given position on the board.
+
+        The tuples in the `PieceRange` consist of a walkable distance (an int) and a possible `Piece`.
+        If at the end of the distance there is an opponent Piece, it is added to the tuple; otherwise,
+        the second slot will be None.
+        """
         piece = self[x, y]
         if not isinstance(piece, Piece):
             raise NoPieceError
@@ -160,16 +166,16 @@ class Board:
 
         else:
             north_field = self.get((x, y - 1), None)
-            north = self._create_range(piece, north_field)
+            north = self._create_regular_range(piece, north_field)
 
             east_field = self.get((x + 1, y), None)
-            east = self._create_range(piece, east_field)
+            east = self._create_regular_range(piece, east_field)
 
             south_field = self.get((x, y + 1), None)
-            south = self._create_range(piece, south_field)
+            south = self._create_regular_range(piece, south_field)
 
             west_field = self.get((x - 1, y), None)
-            west = self._create_range(piece, west_field)
+            west = self._create_regular_range(piece, west_field)
 
             return PieceRange(piece, north, east, south, west)
 
@@ -307,20 +313,20 @@ class Board:
         west = self._create_scout_range(i, piece, west_field)
         return PieceRange(piece, north, east, south, west)
 
-    def _create_range(self, source: Piece, destination: Piece | Empty | None) -> tuple[int, Piece | None]:
+    def _create_regular_range(self, source: Piece, destination: Piece | Empty | None) -> tuple[int, Piece | None]:
         """Create a range tuple containing the length (0 or 1) and the possible `Piece` that can be attacked."""
         if destination and isinstance(destination, Empty):
             north = 1, None
         elif destination and isinstance(destination, Piece) and destination.colour != source.colour:
-            north = 0, destination
+            north = 1, destination
         else:
             north = 0, None
         return north
 
     def _create_scout_range(self, index: int, source: Piece, destination: Piece | None) -> tuple[int, Piece | None]:
-        """Create a range tuple containing the length (`index - 1`) and the possible `Piece` that can be attacked."""
+        """Create a range tuple containing the distance and the possible `Piece` that can be attacked."""
         if destination and isinstance(destination, Piece) and destination.colour != source.colour:
-            north = index - 1, destination
+            north = index, destination
         else:
             north = index - 1, None
         return north
