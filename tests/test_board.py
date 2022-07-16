@@ -148,4 +148,4 @@ def test_board_move(board):
     with pytest.raises(NoPieceError):
         board.move((0, 0), (0, 1))
     board[6, 7] = Piece(SCOUT, Colour.RED, x=6, y=7)
-    board.move((6, 7), (8, 9))
+    board.move((6, 7), (5, 7))

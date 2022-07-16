@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from random import randrange
 
 from strategy.colour import Colour
-from strategy.exceptions import InvalidCoordinateError, InvalidDimensionsError, NoPieceError
+from strategy.exceptions import InvalidCoordinateError, InvalidDestinationError, InvalidDimensionsError, NoPieceError
 from strategy.game import EMPTY, LAKE, Empty, Field, Lake, log
 from strategy.pieces import BOMB, FLAG, PIECES, SCOUT, Piece
 
@@ -62,6 +62,13 @@ class PieceRange:
             d["west"] = [(self.piece.x - i - 1, self.piece.y) for i in range(self.west[0])]
         return d
 
+    def __contains__(self, item: tuple[int, int]) -> bool:
+        """Return `True` when `item` is in the `self.movables` dict values; `False` otherwise."""
+        all_movables = []
+        for coordinates in self.movables.values():
+            all_movables.extend(coordinates)
+        return item in all_movables
+
 
 EmptyRangePiece = PieceRange(piece=None)
 
@@ -104,6 +111,17 @@ class Board:
             result += "\n ----|"
         result = self._last_line(result)
         return result
+
+    @property
+    def winner(self) -> Colour | None:
+        """Return the winning Colour; if no winner could be found, return `None`."""
+        if self._flag_by_colour(Colour.RED) and self._has_movable(Colour.RED):
+            if self._flag_by_colour(Colour.BLUE) and self._has_movable(Colour.BLUE):
+                return None
+            else:
+                return Colour.RED
+        else:
+            return Colour.BLUE
 
     def create_random_pieces(self, colour: Colour) -> None:
         """Create a random setup for a given `Player`. RED is at the bottom, BLUE is on top."""
@@ -160,6 +178,21 @@ class Board:
         piece = self[source]
         if piece == Empty(EMPTY, source[0], source[1]):
             raise NoPieceError
+        if not self._is_possible_destination(piece, dest):
+            raise InvalidDestinationError
+        if self[dest] == Empty(EMPTY, dest[0], dest[1]):
+            self[dest] = self[source]
+            self[dest].x = dest[0]
+            self[dest].y = dest[1]
+            self[source] = Empty(EMPTY, source[0], source[1])
+        else:
+            if piece.attack(self[dest]) in [True, None]:
+                self[dest] = self[source]
+                self[dest].x = dest[0]
+                self[dest].y = dest[1]
+                self[source] = Empty(EMPTY, source[0], source[1])
+            else:
+                self[source] = Empty(EMPTY, source[0], source[1])
 
     def available_range(self, x: int, y: int) -> PieceRange:
         """
@@ -344,3 +377,28 @@ class Board:
         else:
             north = index - 1, None
         return north
+
+    def _is_possible_destination(self, piece: Piece, dest: tuple[int, int]) -> bool:
+        piece_range = self.available_range(piece.x, piece.y)
+        return dest in piece_range
+
+    def _flag_by_colour(self, colour: Colour) -> bool:
+        if colour == Colour.RED:
+            pieces = self.red()
+        else:
+            pieces = self.blue()
+        return any(piece.name == FLAG for piece in pieces)
+
+    def _has_movable(self, colour: Colour) -> bool:
+        if colour == Colour.RED:
+            pieces = self.red()
+        else:
+            pieces = self.blue()
+        for piece in pieces:
+            piece_range = self.available_range(piece.x, piece.y)
+            all_movables = []
+            for coordinates in piece_range.movables.values():
+                all_movables.extend(coordinates)
+            if all_movables:
+                return True
+        return False

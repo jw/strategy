@@ -7,3 +7,7 @@ class Colour(Enum):
 
     BLUE = auto()  # blue is on top
     RED = auto()  # red is on bottom
+
+    def __str__(self) -> str:
+        """Beautify the name."""
+        return self.name.lower()

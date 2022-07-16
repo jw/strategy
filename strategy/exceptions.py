@@ -23,3 +23,9 @@ class InvalidCoordinateError(Exception):
     """Invalid coordinate given."""
 
     pass
+
+
+class InvalidDestinationError(Exception):
+    """Invalid destination given."""
+
+    pass
