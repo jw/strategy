@@ -40,5 +40,10 @@ if __name__ == "__main__":
             movable_pieces.append(range)
     console.print(f"Movable pieces: {', '.join([f'{piece_range.piece}' for piece_range in movable_pieces])}.")
     piece_range = random.choice(movable_pieces)
-    console.print(f"Will move {piece_range.piece} ({piece_range}).")
+    console.print(f"Will move {piece_range.piece} ({piece_range}):")
+    console.print(f"  Movables: {piece_range.movables}.")
+    console.print(f"  Attackables: {piece_range.attackables}.")
+
+    board.move((piece_range.piece.x, piece_range.piece.y), random.choice(piece_range.movables["north"]))
+
     console.print("Strategy ended.")

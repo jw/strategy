@@ -48,6 +48,20 @@ class PieceRange:
             d["west"] = self.west[1]
         return d
 
+    @property
+    def movables(self) -> dict[str, list[tuple[int, int]]]:
+        """Return all the coordinates the `Piece` can move to in a `dict[str, list[tuple[int, int]]]`."""
+        d = {}
+        if self.north[0] > 0:
+            d["north"] = [(self.piece.x, self.piece.y - i - 1) for i in range(self.north[0])]
+        if self.east[0] > 0:
+            d["east"] = [(self.piece.x + i + 1, self.piece.y) for i in range(self.east[0])]
+        if self.south[0] > 0:
+            d["south"] = [(self.piece.x, self.piece.y + i + 1) for i in range(self.south[0])]
+        if self.west[0] > 0:
+            d["west"] = [(self.piece.x - i - 1, self.piece.y) for i in range(self.west[0])]
+        return d
+
 
 EmptyRangePiece = PieceRange(piece=None)
 

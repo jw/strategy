@@ -33,7 +33,11 @@ class Piece(Field):
 
     def __str__(self) -> str:
         """Show the piece."""
-        return f"{self.colour.name.lower()} {self.name} ({self.power})"
+        if self.x and self.y:
+            coordinates = f" at x:{self.x}|y:{self.y}"
+        else:
+            coordinates = ""
+        return f"{self.colour.name.lower()} {self.name} ({self.power}){coordinates}"
 
     def attack(self, other: "Piece") -> bool | None:
         """
