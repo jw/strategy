@@ -1,8 +1,5 @@
 """The Strategy game."""
-import logging
 from dataclasses import dataclass
-
-log = logging.getLogger(__name__)
 
 EMPTY = "empty"
 LAKE = "lake"
