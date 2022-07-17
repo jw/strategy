@@ -59,6 +59,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    console.print("Strategy started.")
     main()
-    console.print("Strategy ended.")
