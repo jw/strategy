@@ -34,10 +34,15 @@ def turn(board: Board, colour: Colour) -> None:
         all_movables.extend(coordinates)
     board.move((piece_range.piece.x, piece_range.piece.y), random.choice(all_movables))
     console.print(f"{board}", soft_wrap=True)
-    winner = board.winner
-    if winner:
+    if winner := board.winner:
         console.print(f"{winner.name.capitalize()} wins the game!")
         sys.exit()
+
+
+def show_moves(moves: list[tuple[Colour, tuple[int, int], tuple[int, int]]]) -> None:
+    """Show the moves."""
+    for move in moves:
+        console.print(f"{move[0]:>8}: x={move[1][0]}, y={move[1][1]} -> x={move[2][0]}, y={move[2][1]}")
 
 
 def main() -> None:

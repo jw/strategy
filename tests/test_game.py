@@ -4,8 +4,7 @@ from _pytest.fixtures import fixture
 from strategy.board import Board, EmptyPieceRange, PieceRange
 from strategy.colour import Colour
 from strategy.exceptions import InvalidCoordinateError, NoPieceError
-from strategy.game import Field
-from strategy.pieces import BOMB, CAPTAIN, FLAG, MINER, SCOUT, SPY, Piece
+from strategy.pieces import BOMB, CAPTAIN, FLAG, MINER, SCOUT, SPY, Field, Piece
 
 
 @fixture

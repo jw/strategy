@@ -5,8 +5,7 @@ from pytest import fixture
 from strategy.board import Board, EmptyPieceRange, PieceRange
 from strategy.colour import Colour
 from strategy.exceptions import InvalidCoordinateError, InvalidDestinationError, InvalidDimensionsError, NoPieceError
-from strategy.game import EMPTY, LAKE, Empty, Lake
-from strategy.pieces import BOMB, CAPTAIN, FLAG, MINER, SCOUT, Piece
+from strategy.pieces import BOMB, CAPTAIN, EMPTY, FLAG, LAKE, MINER, SCOUT, Empty, Lake, Piece
 
 
 @fixture
@@ -170,6 +169,14 @@ def test_board_move(board):
     board.move((3, 7), (4, 7))
     assert board[3, 7] == Empty(EMPTY, x=3, y=7)
     assert board[4, 7] == Empty(EMPTY, x=4, y=7)
+    # get the moves
+    expected = [
+        (Colour.RED, (6, 7), (5, 7)),
+        (Colour.RED, (5, 7), (3, 7)),
+        (Colour.RED, (2, 7), (3, 7)),
+        (Colour.RED, (3, 7), (4, 7)),
+    ]
+    assert board.moves == expected
 
 
 def test_board_repr(board):

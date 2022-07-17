@@ -1,9 +1,12 @@
 """The Strategy pieces."""
+from dataclasses import dataclass
 from functools import total_ordering
 
 from strategy.colour import Colour
 from strategy.exceptions import InvalidOperationError
-from strategy.game import Field
+
+EMPTY = "empty"
+LAKE = "lake"
 
 BOMB = "bomb"
 MARSHAL = "marshal"
@@ -19,17 +22,49 @@ SPY = "spy"
 FLAG = "flag"
 
 
+@dataclass
+class Field:
+    """The base class of the `Piece`s, the `Empty` field or the `Lake` field in the `Board`."""
+
+    name: str
+    x: int
+    y: int
+
+    def __str__(self) -> str:
+        """Show the Field."""
+        return f"{self.name} ({self.x=}, {self.y=})"
+
+
+class Empty(Field):
+    """An empty field."""
+
+    pass
+
+
+class Lake(Field):
+    """A lake field."""
+
+    pass
+
+
 @total_ordering
 class Piece(Field):
     """The Strategy piece."""
 
     def __init__(
-        self, name: str, power: int, colour: Colour | None = None, x: int | None = None, y: int | None = None
+        self,
+        name: str,
+        power: int,
+        colour: Colour | None = None,
+        x: int | None = None,
+        y: int | None = None,
+        seen: bool = False,
     ) -> None:
         """Create a type by power and colour."""
         super().__init__(name, x, y)
         self.power = power
         self.colour = colour
+        self.seen = seen
 
     def __str__(self) -> str:
         """Show the piece."""

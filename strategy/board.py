@@ -1,13 +1,15 @@
 """The Strategy board."""
 import contextlib
 import copy
+import logging
 from dataclasses import dataclass
 from random import randrange
 
 from strategy.colour import Colour
 from strategy.exceptions import InvalidCoordinateError, InvalidDestinationError, InvalidDimensionsError, NoPieceError
-from strategy.game import EMPTY, LAKE, Empty, Field, Lake, log
-from strategy.pieces import BOMB, FLAG, PIECES, SCOUT, Piece
+from strategy.pieces import BOMB, EMPTY, FLAG, LAKE, PIECES, SCOUT, Empty, Field, Lake, Piece
+
+log = logging.getLogger(__name__)
 
 SIZE = 12
 DASH = "-"
@@ -103,6 +105,7 @@ class Board:
         """Create an empty board."""
         self._board = {}
         self._add_lakes()
+        self._moves: list[tuple[Colour, tuple[int, int], tuple[int, int]]] = []
 
     def __str__(self) -> str:
         """Show the board."""
@@ -127,6 +130,11 @@ class Board:
                 return Colour.RED
         else:
             return Colour.BLUE
+
+    @property
+    def moves(self) -> list[tuple[Colour, tuple[int, int], tuple[int, int]]]:
+        """Return the moves."""
+        return self._moves
 
     def create_random_pieces(self, colour: Colour) -> None:
         """Create a random setup for a given `Player`. RED is at the bottom, BLUE is on top."""
@@ -201,6 +209,7 @@ class Board:
                 self[source] = Empty(EMPTY, source[0], source[1])
             else:
                 self[source] = Empty(EMPTY, source[0], source[1])
+        self._moves.append((piece.colour, (source[0], source[1]), (dest[0], dest[1])))
 
     def available_range(self, x: int, y: int) -> PieceRange:
         """
