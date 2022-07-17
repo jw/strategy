@@ -3,19 +3,12 @@
 import logging
 import random
 import sys
-from random import randrange
 
 from strategy.board import Board
 from strategy.colour import Colour
 from strategy.console import console
 
 log = logging.getLogger(__name__)
-
-
-def select_a_cell(player: Colour) -> tuple[int, int]:
-    """Return a random cell."""
-    line_start = 0 if player == Colour.RED else 6
-    return randrange(line_start, line_start + 4), randrange(10)
 
 
 def turn(board: Board, colour: Colour) -> None:

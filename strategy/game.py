@@ -2,10 +2,6 @@
 import logging
 from dataclasses import dataclass
 
-from pydantic import BaseModel, root_validator
-
-from strategy.colour import Colour
-
 log = logging.getLogger(__name__)
 
 EMPTY = "empty"
@@ -35,16 +31,3 @@ class Lake(Field):
     """A lake field."""
 
     pass
-
-
-class Action(BaseModel):
-    """A player action."""
-
-    source: tuple[int, int]
-    destination: tuple[int, int]
-    player: Colour
-
-    @root_validator
-    def check_action(cls, action: "Action") -> "Action":  # noqa: N805
-        """Check the action."""
-        return action

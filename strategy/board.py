@@ -32,7 +32,12 @@ class PieceRange:
     @property
     def can_attack(self) -> bool:
         """Return `True` when a `piece` can attack another `Piece`, `False` otherwise."""
-        return self.north[1] or self.east[1] or self.south[1] or self.west[1]
+        return (
+            self.north[1] is not None
+            or self.east[1] is not None
+            or self.south[1] is not None
+            or self.west[1] is not None
+        )
 
     @property
     def attackables(self) -> dict[str, Piece]:
@@ -70,7 +75,7 @@ class PieceRange:
         return item in all_movables
 
 
-EmptyRangePiece = PieceRange(piece=None)
+EmptyPieceRange = PieceRange(piece=None)
 
 
 class Board:
@@ -186,10 +191,13 @@ class Board:
             self[dest].y = dest[1]
             self[source] = Empty(EMPTY, source[0], source[1])
         else:
-            if piece.attack(self[dest]) in [True, None]:
+            if piece.attack(self[dest]) is True:
                 self[dest] = self[source]
                 self[dest].x = dest[0]
                 self[dest].y = dest[1]
+                self[source] = Empty(EMPTY, source[0], source[1])
+            elif piece.attack(self[dest]) is None:
+                self[dest] = Empty(EMPTY, dest[0], dest[1])
                 self[source] = Empty(EMPTY, source[0], source[1])
             else:
                 self[source] = Empty(EMPTY, source[0], source[1])
@@ -206,7 +214,7 @@ class Board:
         if not isinstance(piece, Piece):
             raise NoPieceError
         if piece.name == FLAG or piece.name == BOMB:
-            return EmptyRangePiece
+            return EmptyPieceRange
 
         if piece.name == SCOUT:
             return self._calculate_scout_range_piece(piece, x, y)

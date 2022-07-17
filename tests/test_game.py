@@ -1,9 +1,10 @@
 import pytest
 from _pytest.fixtures import fixture
 
-from strategy.board import Board, EmptyRangePiece, PieceRange
+from strategy.board import Board, EmptyPieceRange, PieceRange
 from strategy.colour import Colour
 from strategy.exceptions import InvalidCoordinateError, NoPieceError
+from strategy.game import Field
 from strategy.pieces import BOMB, CAPTAIN, FLAG, MINER, SCOUT, SPY, Piece
 
 
@@ -19,9 +20,9 @@ def test_board_available_range_no_piece(board):
 
 def test_board_available_range_flag_and_bomb(board):
     board[7, 2] = Piece(FLAG, 0, Colour.RED)
-    assert board.available_range(x=7, y=2) == EmptyRangePiece
+    assert board.available_range(x=7, y=2) == EmptyPieceRange
     board[7, 2] = Piece(BOMB, 11, Colour.RED)
-    assert board.available_range(x=7, y=2) == EmptyRangePiece
+    assert board.available_range(x=7, y=2) == EmptyPieceRange
 
 
 def test_board_available_range_all_empty(board):
@@ -327,3 +328,7 @@ def test_board_available_range_opposition_north(board):
         "west": (0, None),
     }
     assert board.available_range(x=4, y=4) == PieceRange(**data)
+
+
+def test_field():
+    assert f"{Field('Hello', x=0, y=0)}" == "Hello (self.x=0, self.y=0)"

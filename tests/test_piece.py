@@ -1,5 +1,6 @@
 import pytest
 
+from strategy.colour import Colour
 from strategy.exceptions import InvalidOperationError
 from strategy.pieces import BOMB, FLAG, MARSHAL, MINER, PIECES, SCOUT, SPY, Piece
 
@@ -28,3 +29,14 @@ def test_can_attack():
     assert not Piece(FLAG, 0).can_attack()
     assert not Piece(BOMB, 0).can_attack()
     assert Piece(MINER, 0).can_attack()
+
+
+def test_piece_repr():
+    flag = Piece(FLAG, 0, Colour.RED, x=0, y=0)
+    assert f"{flag!r}" == "red flag (0)"
+
+
+def test_piece_lt():
+    flag = Piece(FLAG, 0, Colour.RED, x=0, y=0)
+    with pytest.raises(TypeError):
+        assert flag < None
