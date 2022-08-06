@@ -5,6 +5,8 @@ from functools import total_ordering
 from strategy.colour import Colour
 from strategy.exceptions import InvalidOperationError
 
+UNKNOWN = ""
+
 EMPTY = "empty"
 LAKE = "lake"
 
@@ -38,13 +40,9 @@ class Field:
 class Empty(Field):
     """An empty field."""
 
-    pass
-
 
 class Lake(Field):
     """A lake field."""
-
-    pass
 
 
 @total_ordering
@@ -73,6 +71,15 @@ class Piece(Field):
         else:
             coordinates = ""
         return f"{self.colour.name.lower()} {self.name} ({self.power}){coordinates}"
+
+    @property
+    def rich_name(self) -> str:
+        """
+        Return the name when the piece was seen by the player, otherwise return `UNKNOWN`.
+
+        This is part of the rich view, so we need to return a rich renderable.
+        """
+        return UNKNOWN if not self.seen and self.colour == Colour.BLUE else self.name
 
     def attack(self, other: "Piece") -> bool | None:
         """

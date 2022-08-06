@@ -1,4 +1,5 @@
-"""The Strategy colours."""
+"""The board colours."""
+
 from enum import Enum, auto
 
 
